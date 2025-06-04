@@ -15,3 +15,13 @@ I learned the importance of using Git as a way to synchronize my progress betwee
 
 #### What I'm still confused about in Git
 As of writing this, I did not have a thing I am confused with Git yet. 
+
+========================================
+
+### June 4, 2025
+
+#### What I learned in Git
+Today, I learned how to fork a repository. In my understanding, basically its re-creating an existing repository and saving it as your own copy of that repository. I'm assuming that it's similar to making a branch in Git. But instead of handling with branches, you are dealing with repositories itself. 
+
+#### What I'm still confused about in Git
+I am confused and slightly wondering what will happen when the owner of the existing repository adds an update to their repo (they pushed new commits), can we update our own fork of the repo with the changes they added? If so, how will it affect our forked repository?
