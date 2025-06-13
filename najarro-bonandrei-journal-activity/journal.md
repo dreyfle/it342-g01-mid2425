@@ -25,3 +25,13 @@ Today, I learned how to fork a repository. In my understanding, basically its re
 
 #### What I'm still confused about in Git
 I am confused and slightly wondering what will happen when the owner of the existing repository adds an update to their repo (they pushed new commits), can we update our own fork of the repo with the changes they added? If so, how will it affect our forked repository?
+
+========================================
+
+### June 13, 2025
+
+#### What I learned in OAuth2
+For this laboratory session, we were taught how to use basic OAuth2 authorization in a Spring Boot application. I learned how to add OAuth2 authorization for GitHub and Google accounts. I also learned the importance of the client-id and client-id-secret and how they must not be shared to the public.
+
+#### What I'm still confused about in OAuth2
+I am somewhat confused and curious how the behind the scenes work in OAuth2. I might look for a video explanation on how it works. Since my previous experience with Sessions was with JWT, I'm wondering if this also uses tokens and if it will also expire.
