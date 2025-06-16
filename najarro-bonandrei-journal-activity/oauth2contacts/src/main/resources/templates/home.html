@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Google OAuth2 Login</title>
+</head>
+<body>
+<h2>Welcome</h2>
+<div th:if="${userInfo != null}">
+    <p>Name: <span th:text="${userInfo['names'][0]['displayName']}"></span></p>
+    <p>Email: <span th:text="${userInfo['emailAddresses'][0]['value']}"></span></p>
+    <img th:src="${userInfo['photos'][0]['url']}" alt="Profile Photo"/>
+</div>
+<div th:if="${userInfo == null}">
+    <a href="/oauth2/authorization/google">Login with Google</a>
+</div>
+</body>
+</html>
