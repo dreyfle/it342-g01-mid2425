@@ -2,9 +2,108 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Google OAuth2 Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Google Contacts</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 900px; /* Increased max-width for table */
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px 15px;
+            border: 1px solid #e5e7eb; /* light gray border */
+            text-align: left;
+        }
+        th {
+            background-color: #e0e7ff; /* light blue header */
+            font-weight: 600;
+            color: #374151;
+        }
+        tr:nth-child(even) {
+            background-color: #f9fafb; /* subtle stripe for rows */
+        }
+        tr:hover {
+            background-color: #f3f4f6; /* hover effect */
+        }
+        ul {
+            list-style: none; /* remove bullet points */
+            padding: 0;
+            margin: 0;
+        }
+        li {
+            margin-bottom: 4px;
+            color: #4b5563;
+        }
+        li:last-child {
+            margin-bottom: 0;
+        }
+    </style>
 </head>
-<body>
+<body class="flex flex-col items-center py-10 px-4">
+    <div class="container bg-white p-8 rounded-lg shadow-xl w-full">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold text-gray-800">Your Google Contacts</h1>
+            <form th:action="@{/logout}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <button type="submit"
+                        class="px-4 py-2 bg-red-600 text-white rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-150 ease-in-out">
+                    Logout
+                </button>
+            </form>
+        </div>
 
+        <div class="mb-6 border-b pb-4">
+            <p class="text-lg text-gray-700">
+                Logged in as: <span class="font-semibold text-blue-600" th:text="${userName}"></span>
+                (<span class="text-gray-600" th:text="${userEmail}"></span>)
+            </p>
+        </div>
+
+        <h2 class="text-2xl font-semibold text-gray-700 mb-4">Contacts List:</h2>
+
+        <div th:if="${contacts.isEmpty()}" class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded-md" role="alert">
+            <p class="font-bold">No Contacts Found!</p>
+            <p>It seems you don't have any contacts, or there was an issue retrieving them.</p>
+        </div>
+
+        <div th:if="${!contacts.isEmpty()}">
+            <table class="min-w-full bg-white rounded-lg shadow-md overflow-hidden">
+                <thead>
+                    <tr>
+                        <th class="py-3 px-4 text-left">Name</th>
+                        <th class="py-3 px-4 text-left">Email Addresses</th>
+                        <th class="py-3 px-4 text-left">Phone Numbers</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="contact : ${contacts}">
+                        <td class="py-3 px-4 text-gray-800 font-medium" th:text="${contact.displayName}">Contact Name</td>
+                        <td class="py-3 px-4">
+                            <ul th:if="${contact.emailAddresses != null and !contact.emailAddresses.isEmpty()}">
+                                <li th:each="email : ${contact.emailAddresses}" th:text="${email.value}"></li>
+                            </ul>
+                            <span th:if="${contact.emailAddresses == null or contact.emailAddresses.isEmpty()}" class="text-gray-500 italic">N/A</span>
+                        </td>
+                        <td class="py-3 px-4">
+                            <ul th:if="${contact.phoneNumbers != null and !contact.phoneNumbers.isEmpty()}">
+                                <li th:each="phone : ${contact.phoneNumbers}" th:text="${phone.value}"></li>
+                            </ul>
+                            <span th:if="${contact.phoneNumbers == null or contact.phoneNumbers.isEmpty()}" class="text-gray-500 italic">N/A</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </body>
 </html>
