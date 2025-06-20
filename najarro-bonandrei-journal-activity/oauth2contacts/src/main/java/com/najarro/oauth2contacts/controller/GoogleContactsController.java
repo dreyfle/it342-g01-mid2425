@@ -1,10 +1,8 @@
 package com.najarro.oauth2contacts.controller;
 
 import com.najarro.oauth2contacts.model.Contact;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.http.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -14,24 +12,31 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate; // Import RestTemplate
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Controller
 public class GoogleContactsController {
 
     private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper;
 
     /**
      * Constructor for GoogleContactsController.
      * Initializes RestTemplate for making HTTP requests.
      */
-    public GoogleContactsController() {
-        this.restTemplate = new RestTemplate(); // RestTemplate is thread-safe and can be reused.
+    public GoogleContactsController(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate; // RestTemplate is thread-safe and can be reused.
+        this.objectMapper = new ObjectMapper();
     }
 
     /**
@@ -71,6 +76,175 @@ public class GoogleContactsController {
         model.addAttribute("userName", oauth2User.getAttribute("name"));
         model.addAttribute("userEmail", oauth2User.getAttribute("email"));
         return "home"; // This will map to src/main/resources/templates/home.html
+    }
+
+    /**
+     * Displays the form for adding a new contact or editing an existing one.
+     *
+     * @param resourceName Optional. The resourceName of the contact to edit. If null, it's an add operation.
+     * @param authorizedClient The OAuth2AuthorizedClient containing the access token.
+     * @param model The Model object to pass data to the Thymeleaf template.
+     * @param redirectAttributes Used for passing flash attributes after redirect.
+     * @return The name of the Thymeleaf template for the contact form.
+     */
+    @GetMapping("/contact-form")
+    public String showContactForm(@RequestParam(required = false) String resourceName,
+                                  @RegisteredOAuth2AuthorizedClient("google") OAuth2AuthorizedClient authorizedClient,
+                                  Model model,
+                                  RedirectAttributes redirectAttributes) {
+
+        model.addAttribute("contact", new Contact()); // Default empty contact for 'add' mode
+        model.addAttribute("mode", "add"); // Default mode
+
+        // If resourceName is provided, it's an edit operation
+        if (resourceName != null && !resourceName.isEmpty()) {
+            try {
+                HttpHeaders headers = new HttpHeaders();
+                headers.setBearerAuth(authorizedClient.getAccessToken().getTokenValue());
+                HttpEntity<String> entity = new HttpEntity<>(headers);
+
+                // Fetch the specific contact details
+                ResponseEntity<Map> responseEntity = restTemplate.exchange(
+                        "https://people.googleapis.com/v1/" + resourceName + "?personFields=names,emailAddresses,phoneNumbers",
+                        HttpMethod.GET,
+                        entity,
+                        Map.class
+                );
+
+                Map<String, Object> apiContact = responseEntity.getBody();
+                if (apiContact != null) {
+                    Contact existingContact = mapApiToContact(apiContact); // Map API response to Contact object
+                    model.addAttribute("contact", existingContact);
+                    model.addAttribute("mode", "edit");
+                }
+            } catch (HttpClientErrorException.NotFound e) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Contact not found for editing.");
+                return "redirect:/contacts";
+            } catch (Exception e) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Error fetching contact for editing: " + e.getMessage());
+                return "redirect:/contacts";
+            }
+        }
+        return "contact_form"; // Renamed from add_contact
+    }
+
+    /**
+     * Handles the submission of the contact form (add or edit).
+     *
+     * @param contact The Contact object populated from the form.
+     * @param authorizedClient The OAuth2AuthorizedClient containing the access token.
+     * @param redirectAttributes Used for passing flash attributes after redirect.
+     * @return A redirect URL to the contacts list.
+     */
+    @PostMapping("/save-contact")
+    public String saveContact(@ModelAttribute Contact contact,
+                              @RegisteredOAuth2AuthorizedClient("google") OAuth2AuthorizedClient authorizedClient,
+                              RedirectAttributes redirectAttributes) {
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(authorizedClient.getAccessToken().getTokenValue());
+            headers.setContentType(MediaType.APPLICATION_JSON); // Important for JSON payloads
+
+            Map<String, Object> person = new HashMap<>();
+            List<Map<String, String>> names = new ArrayList<>();
+            Map<String, String> name = new HashMap<>();
+            if (contact.getFirstName() != null && !contact.getFirstName().isEmpty()) {
+                name.put("givenName", contact.getFirstName());
+            }
+            if (contact.getLastName() != null && !contact.getLastName().isEmpty()) {
+                name.put("familyName", contact.getLastName());
+            }
+            if (!name.isEmpty()) {
+                names.add(name);
+                person.put("names", names);
+            }
+
+            List<Map<String, String>> emailAddresses = new ArrayList<>();
+            if (contact.getEmailAddresses() != null) {
+                for (Contact.EmailAddress email : contact.getEmailAddresses()) {
+                    if (email.getValue() != null && !email.getValue().isEmpty()) {
+                        Map<String, String> emailMap = new HashMap<>();
+                        emailMap.put("value", email.getValue());
+                        if (email.getType() != null && !email.getType().isEmpty()) {
+                            emailMap.put("type", email.getType()); // Include type if provided
+                        }
+                        emailAddresses.add(emailMap);
+                    }
+                }
+            }
+            if (!emailAddresses.isEmpty()) {
+                person.put("emailAddresses", emailAddresses);
+            }
+
+            List<Map<String, String>> phoneNumbers = new ArrayList<>();
+            if (contact.getPhoneNumbers() != null) {
+                for (Contact.PhoneNumber phone : contact.getPhoneNumbers()) {
+                    if (phone.getValue() != null && !phone.getValue().isEmpty()) {
+                        Map<String, String> phoneMap = new HashMap<>();
+                        phoneMap.put("value", phone.getValue());
+                        if (phone.getType() != null && !phone.getType().isEmpty()) {
+                            phoneMap.put("type", phone.getType()); // Include type if provided
+                        }
+                        phoneNumbers.add(phoneMap);
+                    }
+                }
+            }
+            if (!phoneNumbers.isEmpty()) {
+                person.put("phoneNumbers", phoneNumbers);
+            }
+
+            // Convert person map to JSON string
+            String jsonBody = objectMapper.writeValueAsString(person);
+            HttpEntity<String> requestEntity = new HttpEntity<>(jsonBody, headers);
+
+            if (contact.getResourceName() == null || contact.getResourceName().isEmpty()) {
+                // ADD new contact (POST request)
+                restTemplate.exchange(
+                        "https://people.googleapis.com/v1/people:createContact",
+                        HttpMethod.POST,
+                        requestEntity,
+                        String.class // Response is the created Person object, we just need success
+                );
+                redirectAttributes.addFlashAttribute("successMessage", "Contact added successfully!");
+            } else {
+                // EDIT existing contact (PATCH request)
+                // Build the updatePersonFields mask based on fields that might have changed
+                System.out.println("Person: "+ person);
+                System.out.println("RequestEntity: "+ requestEntity);
+                List<String> updateMaskFields = new ArrayList<>();
+                if (person.containsKey("names")) updateMaskFields.add("names"); // Check if names were actually provided in the payload
+                if (person.containsKey("emailAddresses")) updateMaskFields.add("emailAddresses");
+                if (person.containsKey("phoneNumbers")) updateMaskFields.add("phoneNumbers");
+
+                // If no fields are being updated, just redirect without an API call
+                if (updateMaskFields.isEmpty()) {
+                    redirectAttributes.addFlashAttribute("infoMessage", "No changes detected for contact.");
+                    return "redirect:/contacts";
+                }
+
+                String updatePersonFields = String.join(",", updateMaskFields);
+                // URL encode the updatePersonFields value
+//                String encodedUpdatePersonFields = URLEncoder.encode(updatePersonFields, StandardCharsets.UTF_8);
+                System.out.println("URL: https://people.googleapis.com/v1/" + contact.getResourceName() + ":updateContact?updatePersonFields=" + updatePersonFields);
+                restTemplate.exchange(
+                        "https://people.googleapis.com/v1/" + contact.getResourceName() + ":updateContact?updatePersonFields=" + updatePersonFields,
+                        HttpMethod.PATCH,
+                        requestEntity,
+                        String.class // Response is the updated Person object
+                );
+                redirectAttributes.addFlashAttribute("successMessage", "Contact updated successfully!");
+                System.out.println("S U C C E S S");
+            }
+        } catch (HttpClientErrorException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "API Error: " + e.getResponseBodyAsString());
+            System.err.println("API Error: " + e.getResponseBodyAsString()); // Log for debugging
+
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "An unexpected error occurred: " + e.getMessage());
+            System.err.println("Unexpected Error: " + e.getMessage()); // Log for debugging
+        }
+
+        return "redirect:/contacts";
     }
 
     /**
@@ -115,7 +289,7 @@ public class GoogleContactsController {
 
             // Convert raw map data into a list of Contact objects
             contacts = connections.stream()
-                    .map(this::mapToContact) // Map each connection map to a Contact object
+                    .map(this::mapApiToContact) // Map each connection map to a Contact object
                     .collect(Collectors.toList());
         }
 
@@ -124,35 +298,38 @@ public class GoogleContactsController {
     }
 
     /**
-     * Helper method to map a raw Google People API connection map to a Contact object.
-     * This handles the nested structure of the API response for names, emails, and phone numbers.
+     * Helper method to map a raw Google People API response (for a single Person) to a Contact object.
+     * Used for both fetching all contacts and fetching a single contact for editing.
      *
-     * @param connection The raw map representing a single contact connection from the API.
+     * @param apiContact The raw map representing a single contact connection from the API.
      * @return A populated Contact object.
      */
-    private Contact mapToContact(Map<String, Object> connection) {
+    private Contact mapApiToContact(Map<String, Object> apiContact) {
         Contact contact = new Contact();
 
-        // Extract and set names
-        List<Map<String, String>> names = (List<Map<String, String>>) connection.get("names");
+        // Set resourceName
+        contact.setResourceName((String) apiContact.get("resourceName"));
+
+        // Extract and set names (givenName and familyName)
+        List<Map<String, String>> names = (List<Map<String, String>>) apiContact.get("names");
         if (names != null && !names.isEmpty()) {
-            List<Contact.Name> contactNames = names.stream()
-                    .map(nameMap -> {
-                        Contact.Name n = new Contact.Name();
-                        n.setDisplayName(nameMap.get("displayName"));
-                        return n;
-                    })
-                    .collect(Collectors.toList());
-            contact.setNames(contactNames);
+            Map<String, String> primaryName = names.stream()
+                    .filter(nameMap -> nameMap.containsKey("givenName") || nameMap.containsKey("familyName"))
+                    .findFirst()
+                    .orElse(names.get(0));
+
+            contact.setFirstName(primaryName.get("givenName"));
+            contact.setLastName(primaryName.get("familyName"));
         }
 
         // Extract and set email addresses
-        List<Map<String, String>> emails = (List<Map<String, String>>) connection.get("emailAddresses");
+        List<Map<String, String>> emails = (List<Map<String, String>>) apiContact.get("emailAddresses");
         if (emails != null && !emails.isEmpty()) {
             List<Contact.EmailAddress> contactEmails = emails.stream()
                     .map(emailMap -> {
                         Contact.EmailAddress e = new Contact.EmailAddress();
                         e.setValue(emailMap.get("value"));
+                        e.setType(emailMap.get("type")); // Also map type
                         return e;
                     })
                     .collect(Collectors.toList());
@@ -160,12 +337,13 @@ public class GoogleContactsController {
         }
 
         // Extract and set phone numbers
-        List<Map<String, String>> phoneNumbers = (List<Map<String, String>>) connection.get("phoneNumbers");
+        List<Map<String, String>> phoneNumbers = (List<Map<String, String>>) apiContact.get("phoneNumbers");
         if (phoneNumbers != null && !phoneNumbers.isEmpty()) {
             List<Contact.PhoneNumber> contactPhones = phoneNumbers.stream()
                     .map(phoneMap -> {
                         Contact.PhoneNumber p = new Contact.PhoneNumber();
                         p.setValue(phoneMap.get("value"));
+                        p.setType(phoneMap.get("type")); // Also map type
                         return p;
                     })
                     .collect(Collectors.toList());
@@ -173,6 +351,45 @@ public class GoogleContactsController {
         }
 
         return contact;
+    }
+
+    /**
+     * Handles the deletion of a contact.
+     * This endpoint expects a POST request with the contact's resourceName.
+     *
+     * @param resourceName The resourceName of the contact to delete.
+     * @param authorizedClient The OAuth2AuthorizedClient containing the access token.
+     * @param redirectAttributes Used for passing flash attributes after redirect.
+     * @return A redirect URL to the contacts list.
+     */
+    @PostMapping("/delete-contact") // Using POST for deletion to integrate with Spring Security CSRF
+    public String deleteContact(@RequestParam String resourceName,
+                                @RegisteredOAuth2AuthorizedClient("google") OAuth2AuthorizedClient authorizedClient,
+                                RedirectAttributes redirectAttributes) {
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(authorizedClient.getAccessToken().getTokenValue());
+            HttpEntity<String> entity = new HttpEntity<>(headers); // No request body needed for DELETE
+
+            // The Google People API for delete is a simple DELETE request to the resourceName
+            restTemplate.exchange(
+                    "https://people.googleapis.com/v1/" + resourceName + ":deleteContact",
+                    HttpMethod.DELETE,
+                    entity,
+                    String.class // Response is empty for successful delete
+            );
+            redirectAttributes.addFlashAttribute("successMessage", "Contact deleted successfully!");
+        } catch (HttpClientErrorException.NotFound e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Contact not found for deletion.");
+            System.err.println("API Error (Delete - Not Found): " + e.getResponseBodyAsString());
+        } catch (HttpClientErrorException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "API Error deleting contact: " + e.getResponseBodyAsString());
+            System.err.println("API Error (Delete): " + e.getResponseBodyAsString());
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "An unexpected error occurred during deletion: " + e.getMessage());
+            System.err.println("Unexpected Error (Delete): " + e.getMessage());
+        }
+        return "redirect:/contacts";
     }
 }
 
