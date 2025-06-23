@@ -91,9 +91,10 @@
         <p th:text="${infoMessage}"></p>
     </div>
 
-    <form th:action="@{/save-contact}" th:object="${contact}" method="post" class="space-y-6">
-        <!-- Hidden field for resourceName (used for updates) -->
+    <form th:action="@{/save-contact}" th:object="${contact}" method="post" class="space-y-6" onsubmit="return disableSaveButton();">
+        <!-- Hidden field for resourceName and etag (used for updates) -->
         <input type="hidden" th:field="*{resourceName}" />
+        <input type="hidden" th:field="*{etag}" />
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -151,7 +152,7 @@
                class="btn btn-gray">
                 Cancel
             </a>
-            <button type="submit"
+            <button type="submit" id="saveButton"
                     class="btn btn-blue"
                     th:text="${mode == 'add' ? 'Add Contact' : 'Save Changes'}">
                 Save
@@ -232,6 +233,16 @@
                 div.querySelector('[name^="phoneNumbers"]').name = `phoneNumbers[${i}].value`;
                 div.querySelector('[name^="phoneNumbers"][name$=".type"]').name = `phoneNumbers[${i}].type`;
             });
+        }
+
+        // Function to disable the save button on form submission
+        function disableSaveButton() {
+            var saveButton = document.getElementById('saveButton');
+            saveButton.disabled = true;
+            // Optionally change button text based on mode, but main goal is to disable
+            var mode = /*[[${mode}]]*/ 'add';
+            saveButton.textContent = (mode === 'add' ? 'Adding...' : 'Saving...');
+            return true; // Allow the form to submit
         }
         /*]]>*/
     </script>

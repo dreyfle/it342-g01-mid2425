@@ -114,6 +114,7 @@ public class GoogleContactsController {
                 Map<String, Object> apiContact = responseEntity.getBody();
                 if (apiContact != null) {
                     Contact existingContact = mapApiToContact(apiContact); // Map API response to Contact object
+                    System.out.println("Current Etag taken from API: " + existingContact.getEtag());
                     model.addAttribute("contact", existingContact);
                     model.addAttribute("mode", "edit");
                 }
@@ -141,40 +142,48 @@ public class GoogleContactsController {
                               @RegisteredOAuth2AuthorizedClient("google") OAuth2AuthorizedClient authorizedClient,
                               RedirectAttributes redirectAttributes) {
         try {
+            // System.out.println("Contact etag passed to save contact: "+ contact.getEtag());
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(authorizedClient.getAccessToken().getTokenValue());
             headers.setContentType(MediaType.APPLICATION_JSON); // Important for JSON payloads
 
             Map<String, Object> person = new HashMap<>();
+
+            if (contact.getEtag() != null && !contact.getEtag().isEmpty()) {
+                person.put("etag", contact.getEtag());
+            }
+
             List<Map<String, String>> names = new ArrayList<>();
-            Map<String, String> name = new HashMap<>();
             if (contact.getFirstName() != null && !contact.getFirstName().isEmpty()) {
+                Map<String, String> name = new HashMap<>();
                 name.put("givenName", contact.getFirstName());
-            }
-            if (contact.getLastName() != null && !contact.getLastName().isEmpty()) {
-                name.put("familyName", contact.getLastName());
-            }
-            if (!name.isEmpty()) {
+                if (contact.getLastName() != null && !contact.getLastName().isEmpty()) {
+                    name.put("familyName", contact.getLastName());
+                }
                 names.add(name);
-                person.put("names", names);
+            } else if (contact.getLastName() != null && !contact.getLastName().isEmpty()) {
+                // If only last name is provided, still include it
+                Map<String, String> name = new HashMap<>();
+                name.put("familyName", contact.getLastName());
+                names.add(name);
             }
+            person.put("names", names);
 
             List<Map<String, String>> emailAddresses = new ArrayList<>();
             if (contact.getEmailAddresses() != null) {
                 for (Contact.EmailAddress email : contact.getEmailAddresses()) {
+                    // Only add email to list if its value is not empty
                     if (email.getValue() != null && !email.getValue().isEmpty()) {
                         Map<String, String> emailMap = new HashMap<>();
                         emailMap.put("value", email.getValue());
                         if (email.getType() != null && !email.getType().isEmpty()) {
-                            emailMap.put("type", email.getType()); // Include type if provided
+                             emailMap.put("type", email.getType()); // Include type if provided
                         }
                         emailAddresses.add(emailMap);
                     }
                 }
             }
-            if (!emailAddresses.isEmpty()) {
-                person.put("emailAddresses", emailAddresses);
-            }
+            person.put("emailAddresses", emailAddresses);
 
             List<Map<String, String>> phoneNumbers = new ArrayList<>();
             if (contact.getPhoneNumbers() != null) {
@@ -189,9 +198,7 @@ public class GoogleContactsController {
                     }
                 }
             }
-            if (!phoneNumbers.isEmpty()) {
-                person.put("phoneNumbers", phoneNumbers);
-            }
+            person.put("phoneNumbers", phoneNumbers);
 
             // Convert person map to JSON string
             String jsonBody = objectMapper.writeValueAsString(person);
@@ -209,8 +216,8 @@ public class GoogleContactsController {
             } else {
                 // EDIT existing contact (PATCH request)
                 // Build the updatePersonFields mask based on fields that might have changed
-                System.out.println("Person: "+ person);
-                System.out.println("RequestEntity: "+ requestEntity);
+                // System.out.println("Person: "+ person);
+                // System.out.println("RequestEntity: "+ requestEntity);
                 List<String> updateMaskFields = new ArrayList<>();
                 if (person.containsKey("names")) updateMaskFields.add("names"); // Check if names were actually provided in the payload
                 if (person.containsKey("emailAddresses")) updateMaskFields.add("emailAddresses");
@@ -309,6 +316,7 @@ public class GoogleContactsController {
 
         // Set resourceName
         contact.setResourceName((String) apiContact.get("resourceName"));
+        contact.setEtag((String) apiContact.get("etag"));
 
         // Extract and set names (givenName and familyName)
         List<Map<String, String>> names = (List<Map<String, String>>) apiContact.get("names");

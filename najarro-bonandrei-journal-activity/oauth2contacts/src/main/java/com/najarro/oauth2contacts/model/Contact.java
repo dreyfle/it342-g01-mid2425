@@ -10,6 +10,7 @@ import java.util.Optional;
 public class Contact {
 
   private String resourceName;
+  private String etag;
   private String firstName; // New field for first name
   private String lastName;  // New field for last name
   private List<EmailAddress> emailAddresses;
@@ -21,6 +22,14 @@ public class Contact {
 
   public void setResourceName(String resourceName) {
     this.resourceName = resourceName;
+  }
+
+  public String getEtag() {
+    return etag;
+  }
+
+  public void setEtag(String etag) {
+    this.etag = etag;
   }
 
   // Getters and Setters for firstName and lastName
