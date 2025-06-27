@@ -117,3 +117,16 @@ I am somewhat confused and curious how the behind the scenes work in OAuth2. I m
 - The challenge for me is creating the API Design Documentation. It is somewhat very detailed already and I may not have the brain power to finish it all in a few days.
 
 ========================================
+
+## [Date: 06-24-2025]
+
+**1. What did I accomplish yesterday?**
+- I started creating the System Design assignment by making the initial files needed by our group. I was done with the System Architecture Diagram and started a bit on the API Design.
+
+**2. What will I do today?**
+-  I will finish up the System Design assignment together with my group mates. Together with my group, we will focus on the ERD and the API Design.
+
+**3. Any blockers or challenges?**
+- The challenge for today's tasks was the communication between the team members with coming up with the ERD so that we will have a consistent and uniform output from all of us.
+
+========================================
