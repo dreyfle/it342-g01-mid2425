@@ -65,3 +65,16 @@ I am somewhat confused and curious how the behind the scenes work in OAuth2. I m
 - The challenge in making this was that my group mates do not have previous experience in making these deliverables. Especially in some of the diagrams mentioned in the assignment.
 
 ========================================
+
+## [Date: 06-20-2025]
+
+**1. What did I accomplish yesterday?**
+- I submitted the Requirement Analysis & Gathering assignment. It was submitted late, but only for a few seconds. The deadline was 11:59 and I submitted at exactly 11:59, but it was marked as late. It is what it is :)  
+
+**2. What will I do today?**
+- We were tasked to complete the implementation of Google People API, especially the creating, updating, and deleting of Contacts. Hopefully, I can finish all of them within today.
+
+**3. Any blockers or challenges?**
+- The difficulties I encountered was the part for updating of contacts. I am still on the process of troubleshooting the cause of the problems I encountered.
+
+========================================
