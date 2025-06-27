@@ -35,3 +35,20 @@ For this laboratory session, we were taught how to use basic OAuth2 authorizatio
 
 #### What I'm still confused about in OAuth2
 I am somewhat confused and curious how the behind the scenes work in OAuth2. I might look for a video explanation on how it works. Since my previous experience with Sessions was with JWT, I'm wondering if this also uses tokens and if it will also expire.
+
+========================================
+D A I L Y   J O U R N A L   U P D A T E
+========================================
+
+## [Date: 06-18-2025]
+
+**1. What did I accomplish yesterday?**
+- Yesterday we had our Midterm Exams. It was a bit hard especially on the parts where I forgot how to implement some of the codes for the design patterns.
+
+**2. What will I do today?**
+- I will start creating the Requirements Gathering & Analysis assignment where I started making the initial files needed by our group which are the Word document file for the Functional & Non-Functional Requirements and the Use Case Diagram.
+
+**3. Any blockers or challenges?**
+- The challenge in making this was that my group mates do not have previous experience in making these deliverables.
+
+========================================
