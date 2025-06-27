@@ -104,3 +104,16 @@ I am somewhat confused and curious how the behind the scenes work in OAuth2. I m
 - One challenge I encountered was that because of the sense of urgency that I need to finish the activity, I did not completely read the API documentation. Hence, I could not correctly implement the API which resulted in errors. Luckily, I read it again and I successfully implemented it.
 
 ========================================
+
+## [Date: 06-23-2025]
+
+**1. What did I accomplish yesterday?**
+- I was able to successfully implement the updating of contacts in our lab activity (implementing Google People API) and fix the error that kept on coming up.
+
+**2. What will I do today?**
+- I will start creating the System Design assignment where I started making the initial files needed by our group which are the Word document file for the System Architecture and ERD, and a spreadsheet file for the API Design Documentation.
+
+**3. Any blockers or challenges?**
+- The challenge for me is creating the API Design Documentation. It is somewhat very detailed already and I may not have the brain power to finish it all in a few days.
+
+========================================
