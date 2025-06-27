@@ -143,3 +143,16 @@ I am somewhat confused and curious how the behind the scenes work in OAuth2. I m
 - I encountered no problem when setting up the development environment. My only challenge is that my group mates have no prior experience to React JS.
 
 ========================================
+
+## [Date: 06-26-2025]
+
+**1. What did I accomplish yesterday?**
+- We have successfully set up the GitHub repository for our final project. I was also able to set up branch rules to prevent pushes to main and it must only be updated via approved merge commits.
+
+**2. What will I do today?**
+- We will start making the implementation part of the project, as per the Implementation assignment. We started making the Figma design for the project and started making the code for the 1st increment.
+
+**3. Any blockers or challenges?**
+- The challenge so far with the implementation phase is integrating OAuth2 in the backend with React frontend. I'm still having problems with integrating both ends despite looking for online resources. I might need to make more research on the subject matter.
+
+========================================
