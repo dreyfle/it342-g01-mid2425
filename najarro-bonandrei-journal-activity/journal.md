@@ -91,3 +91,16 @@ I am somewhat confused and curious how the behind the scenes work in OAuth2. I m
 - The challenge today is to fully commit to resting without having to worry about the project that we will be making some time next week. I really hope my group mates can be relied on during the project.
 
 ========================================
+
+## [Date: 06-22-2025]
+
+**1. What did I accomplish yesterday?**
+- I had a mental health break after a week-long juggling of NAS duties and summer class. It was a well-deserved rest considering the hard work I put that week.
+
+**2. What will I do today?**
+- I will continue the implementation of Google People API for updating contacts in our lab activity. I will try to fix the persistent error from my work from two days ago. Hopefully, it will be solved.
+
+**3. Any blockers or challenges?**
+- One challenge I encountered was that because of the sense of urgency that I need to finish the activity, I did not completely read the API documentation. Hence, I could not correctly implement the API which resulted in errors. Luckily, I read it again and I successfully implemented it.
+
+========================================
