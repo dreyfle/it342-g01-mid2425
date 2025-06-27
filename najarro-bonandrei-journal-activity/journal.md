@@ -130,3 +130,16 @@ I am somewhat confused and curious how the behind the scenes work in OAuth2. I m
 - The challenge for today's tasks was the communication between the team members with coming up with the ERD so that we will have a consistent and uniform output from all of us.
 
 ========================================
+
+## [Date: 06-25-2025]
+
+**1. What did I accomplish yesterday?**
+- I was able to submit the System Design document assignment due last night at 11:59 PM. 
+
+**2. What will I do today?**
+- We will be setting up the working environment for our final project. It covers the GitHub repository and the projects for React JS Frontend and Spring Boot Backend.
+
+**3. Any blockers or challenges?**
+- I encountered no problem when setting up the development environment. My only challenge is that my group mates have no prior experience to React JS.
+
+========================================
