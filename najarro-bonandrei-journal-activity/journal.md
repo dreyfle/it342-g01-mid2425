@@ -78,3 +78,16 @@ I am somewhat confused and curious how the behind the scenes work in OAuth2. I m
 - The difficulties I encountered was the part for updating of contacts. I am still on the process of troubleshooting the cause of the problems I encountered.
 
 ========================================
+
+## [Date: 06-21-2025]
+
+**1. What did I accomplish yesterday?**
+- I successfully implemented the creating and deleting of contacts using the People API. Unfortunately, the updating part still has problems I plan to fix later on.
+
+**2. What will I do today?**
+- I plan to rest today after a very productive week. Since I am a Non-Academic Scholar (NAS), I am rendering my duties every morning and attend classes in the afternoon.
+
+**3. Any blockers or challenges?**
+- The challenge today is to fully commit to resting without having to worry about the project that we will be making some time next week. I really hope my group mates can be relied on during the project.
+
+========================================
